@@ -29,12 +29,6 @@ router.post(
   ctrlWrapper(createContactController),
 );
 
-router.post(
-  '/register',
-  validateBody(createContactShema),
-  ctrlWrapper(createContactController),
-);
-
 router.delete('/contacts/:id', isValidId, ctrlWrapper(deleteContactController));
 
 router.patch(

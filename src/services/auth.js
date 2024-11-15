@@ -1,43 +1,45 @@
+import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import createHttpError from 'http-errors';
 
-import { FIFTEEN_MINUTES, ONE_DAY } from '../constans/contacts.js';
-import { SessionsCollection } from '../db/models/session.js';
+import UserCollection from '../db/models/user.js';
+import SessionCollection from '../db/models/session.js';
 
-import { UsersCollection } from '../db/models/user.js';
+import { accessTokenLifetime, refreshTokenLifetime } from '../constans/user.js';
 
-export const registerUser = async (payload) => {
-  const user = await UsersCollection.findOne({ email: payload.email });
-  if (user) throw createHttpError(409, 'Email in use');
-  const encryptedPassword = await bcrypt.hash(payload.password, 10);
+export const register = async (payload) => {
+  const { email, password } = payload;
+  const user = await UserCollection.findOne({ email });
+  if (user) {
+    throw createHttpError(409, 'Email already in use');
+  }
 
-  return await UsersCollection.create({
-    ...payload,
-    password: encryptedPassword,
-  });
+  const hashPassword = await bcrypt.hash(password, 10);
+
+  return UserCollection.create({ ...payload, password: hashPassword });
 };
 
-export const loginUser = async (payload) => {
-  const user = await UsersCollection.findOne({ email: payload.email });
+export const login = async ({ email, password }) => {
+  const user = await UserCollection.findOne({ email });
   if (!user) {
-    throw createHttpError(404, 'User not found');
+    throw createHttpError(401, 'Email or password invalid');
   }
-  const isEqual = await bcrypt.compare(payload.password, user.password);
 
-  if (!isEqual) {
-    throw createHttpError(401, 'Unauthorized');
+  const passwordCompare = await bcrypt.compare(password, user.password);
+  if (!passwordCompare) {
+    throw createHttpError(401, 'Email or password invalid');
   }
-  await SessionsCollection.deleteOne({ userId: user._id });
+
+  await SessionCollection.deleteOne({ userId: user._id });
 
   const accessToken = randomBytes(30).toString('base64');
   const refreshToken = randomBytes(30).toString('base64');
 
-  return await SessionsCollection.create({
+  return SessionCollection.create({
     userId: user._id,
     accessToken,
     refreshToken,
-    accessTokenValidUntil: new Date(Date.now() + FIFTEEN_MINUTES),
-    refreshTokenValidUntil: new Date(Date.now() + ONE_DAY),
+    accessTokenValidUntil: Date.now() + accessTokenLifetime,
+    refreshTokenValidUntil: Date.now() + refreshTokenLifetime,
   });
 };

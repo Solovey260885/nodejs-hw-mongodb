@@ -1,15 +1,17 @@
-import { loginUser, registerUser } from '../services/auth.js';
+import createHttpError from 'http-errors';
 
-export const registerUserController = async (req, res) => {
-  const user = await registerUser(req.body);
+import * as authServices from '../services/auth.js';
+
+export const registerController = async (req, res) => {
+  const data = await authServices.register(req.body);
 
   res.status(201).json({
     status: 201,
-    message: 'Successfully registered a user!',
-    data: user,
+    message: 'Successfully registerd user',
   });
 };
 
-export const loginUserController = async (req, res) => {
-  await loginUser(req.body);
+export const loginController = async (req, res) => {
+  const session = await authServices.login(req.body);
+  console.log(session);
 };
