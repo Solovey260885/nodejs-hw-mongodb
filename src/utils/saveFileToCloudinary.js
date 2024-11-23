@@ -19,7 +19,6 @@ export const saveFileToCloudinary = async (file, folder) => {
       folder,
     });
     return response.secure_url;
-    // eslint-disable-next-line no-useless-catch
   } catch (error) {
     throw error;
   } finally {
