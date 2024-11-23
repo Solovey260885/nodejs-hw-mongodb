@@ -11,6 +11,7 @@ import { parseSortParams } from '../utils/parseSortParams.js';
 import { sortByList } from '../db/models/Contact.js';
 
 import { parseFilterParams } from '../utils/parseFilterParams.js';
+import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
 
 import createHttpError from 'http-errors';
 
@@ -19,6 +20,7 @@ export const getContactController = async (req, res) => {
   const { sortBy, sortOrder } = parseSortParams(req.query, sortByList);
   const filter = parseFilterParams(req.query);
   const { _id: userId } = req.user;
+
   filter.userId = userId;
 
   const data = await getContacts({
@@ -52,7 +54,11 @@ export const getContactByIdController = async (req, res, next) => {
 
 export const createContactController = async (req, res) => {
   const { _id: userId } = req.user;
-  const contact = await createContact({ ...req.body, userId });
+  let photo = null;
+  if (req.file) {
+    photo = await saveFileToCloudinary(req.file, 'photo');
+  }
+  const contact = await createContact({ ...req.body, photo, userId });
   res.status(201).json({
     status: 201,
     message: `Successfully created a contact!`,
@@ -62,6 +68,7 @@ export const createContactController = async (req, res) => {
 
 export const deleteContactController = async (req, res, next) => {
   const { id: _id } = req.params;
+
   const contact = await deleteContact({ _id });
   if (!contact) {
     next(createHttpError(404, 'Contact not found'));
@@ -72,7 +79,12 @@ export const deleteContactController = async (req, res, next) => {
 export const patchContactController = async (req, res, next) => {
   const { id: _id } = req.params;
 
-  const result = await updateContact({ _id, payload: req.body });
+  let photo = null;
+  if (req.file) {
+    photo = await saveFileToCloudinary(req.file, 'photo');
+  }
+
+  const result = await updateContact({ _id, photo, payload: req.body });
 
   if (!result) {
     next(createHttpError(404, 'Contact not found'));

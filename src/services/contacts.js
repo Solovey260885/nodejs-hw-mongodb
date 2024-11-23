@@ -53,10 +53,12 @@ export const deleteContact = async (contactId) => {
   return contact;
 };
 
-export const updateContact = async ({ _id, payload, options = {} }) => {
+export const updateContact = async ({ _id, photo, payload, options = {} }) => {
   const rawResult = await ContactCollection.findOneAndUpdate(
     { _id: _id },
-    payload,
+    {
+      $set: { ...payload, photo },
+    },
     {
       ...options,
       includeResultMetadata: true,
