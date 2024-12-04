@@ -369,14 +369,6 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "name",
-                  "phoneNumber",
-                  "email",
-                  "isFavourite",
-                  "userId",
-                  "contactType"
-                ],
                 "properties": {
                   "name": {
                     "description": "Contact's name",
@@ -481,28 +473,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Delete contact",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "status",
-                    "message"
-                  ],
-                  "properties": {
-                    "status": {
-                      "type": "integer",
-                      "example": 204
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Successfully delete contact with id 65ca67e7ae7f10c88b598384!"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Delete contact"
           },
           "404": {
             "$ref": "#/components/responses/404"
